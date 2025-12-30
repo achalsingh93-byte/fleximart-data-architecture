@@ -1,0 +1,160 @@
+DATA QUALITY REPORT
+FlexiMart Data Architecture – Part 1 (Database ETL)
+
+====================================
+1. Overview
+====================================
+
+This report documents the data quality checks, issues identified, and corrective actions applied during the ETL process for the FlexiMart relational database.
+
+Source datasets:
+- customers_raw.csv
+- products_raw.csv
+- sales_raw.csv
+- products_catalog.json
+
+Target database:
+- MySQL (Database: fleximart)
+
+The objective was to ensure data accuracy, consistency, completeness, and readiness for analytical use.
+
+====================================
+2. Data Quality Checks Performed
+====================================
+
+The following data quality dimensions were evaluated:
+
+✔ Completeness  
+✔ Uniqueness  
+✔ Validity  
+✔ Consistency  
+✔ Referential Integrity  
+
+====================================
+3. Dataset-wise Observations & Actions
+====================================
+
+------------------------------------
+3.1 Customers Data
+------------------------------------
+
+Checks performed:
+- Missing values in mandatory fields (first_name, last_name, email)
+- Duplicate email addresses
+- Phone number format consistency
+- Registration date validity
+
+Issues identified:
+- Missing phone numbers in some records
+- Phone numbers with inconsistent formatting
+- Duplicate email IDs present in raw data
+
+Actions taken:
+- Phone numbers normalized by retaining last 10 digits
+- Missing phone numbers allowed as NULL
+- Email field enforced as UNIQUE at database level
+- Duplicate email inserts rejected by constraint
+
+Final status:
+- No duplicate customers loaded
+- Mandatory fields fully populated
+- Data suitable for customer-level analytics
+
+------------------------------------
+3.2 Products Data
+------------------------------------
+
+Checks performed:
+- Missing product names or categories
+- Price validity (non-negative values)
+- Stock quantity validity
+
+Issues identified:
+- None critical
+
+Actions taken:
+- Data validated during ingestion
+- Price and stock quantity enforced as NOT NULL
+
+Final status:
+- Clean and consistent product master
+- Ready for pricing and category analysis
+
+------------------------------------
+3.3 Orders & Sales Data
+------------------------------------
+
+Checks performed:
+- Missing customer references
+- Invalid product references
+- Order date validity
+- Quantity greater than zero
+
+Issues identified:
+- Some customers had zero orders
+- No orphan order records found
+
+Actions taken:
+- LEFT JOIN logic preserved customers with zero orders
+- Foreign key constraints enforced to ensure referential integrity
+
+Final status:
+- Orders correctly linked to customers
+- Order_items accurately linked to products
+
+====================================
+4. Referential Integrity Validation
+====================================
+
+Constraints enforced:
+- orders.customer_id → customers.customer_id
+- order_items.order_id → orders.order_id
+- order_items.product_id → products.product_id
+
+Result:
+- No orphan records found
+- All foreign key relationships validated successfully
+
+====================================
+5. Post-ETL Validation Queries
+====================================
+
+The following checks were executed after ETL completion:
+
+- SHOW TABLES;
+- SELECT COUNT(*) FROM customers;
+- SELECT COUNT(*) FROM products;
+- SELECT COUNT(*) FROM orders;
+- SELECT COUNT(*) FROM order_items;
+
+Result:
+- Tables created successfully
+- Data loaded correctly
+- Row counts matched expectations from source data
+
+====================================
+6. Known Limitations
+====================================
+
+- Historical duplicate customers cannot be merged automatically
+- No address standardization implemented (city only)
+- No advanced anomaly detection applied at this stage
+
+These limitations are acceptable for the scope of Part 1 and will be addressed in later stages if required.
+
+====================================
+7. Conclusion
+====================================
+
+The ETL process successfully transformed raw input data into a clean, consistent, and analytics-ready relational database.
+
+All critical data quality issues were identified and handled appropriately through transformation logic and database constraints.
+
+The dataset is fit for:
+- Business analytics queries
+- Data warehousing (Part 3)
+- NoSQL modeling (Part 2)
+
+====================================
+END OF REPORT
+====================================
